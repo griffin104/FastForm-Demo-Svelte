@@ -1,8 +1,6 @@
 <script>
-  import NormalForm  from '../components/NormalForm.svelte'
+import BetterForm from '../components/BetterForm.svelte';
+import NormalForm  from '../components/NormalForm.svelte'
 </script>
 
-<NormalForm />
-<br/>
-<hr/>
-<br/>
+<BetterForm />

@@ -1,5 +1,5 @@
 <script>
-  import { basketballTeams, checkboxOptions } from '../config.js'
+import { basketballTeams, checkboxOptions } from '../config.js'
   import { errors } from '../store.js'
   //Initializing variables
   let firstName = '';
@@ -10,13 +10,6 @@
   let selectSex = ['Male', 'Female']
 
   let selectbb = '';
-  
-  //Income and income display format
-  let income = 0;
-  let formatMoney = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  });
 
   //Recommend Codesmith
   let recommendation = 0;
@@ -24,14 +17,29 @@
   
   let fruits = [];
 
-  let disableSubmit = true;
-  let isSubmitting = false
+  let submitted = false
 
   function handleSubmit(){
-    isSubmitting = true;
-    setTimeout(() => {
-      isSubmitting = false
-    }, 2000);
+    limitFruits()
+    if (!firstName) {
+      $errors.firstName = 'First name must be provided'
+    } else {
+      $errors.firstName = ''
+    }
+    if (!lastName) {
+      $errors.lastName = 'Last name must be provided'
+    } else {
+      $errors.lastName = ''
+    }
+    const vals = Object.values($errors)
+    let disableFlag = true
+    for (let i = 0; i < vals.length; i++) {
+      if (vals[i]) {
+        disableFlag = false
+        break
+      }
+    }
+    submitted = disableFlag
   }
 
   //limit number of fruit choices validators
@@ -50,45 +58,20 @@
     }
     console.log($errors)
   }
-
-  $: if (firstName || lastName || fruits) {
-    limitFruits()
-    if (!firstName) {
-      $errors.firstName = 'First name must be provided'
-    } else {
-      $errors.firstName = ''
-    }
-    if (!lastName) {
-      $errors.lastName = 'Last name must be provided'
-    } else {
-      $errors.lastName = ''
-    }
-    const vals = Object.values($errors)
-    let disableFlag = false
-    for (let i = 0; i < vals.length; i++) {
-      if (vals[i]) {
-        disableFlag = true
-        break
-      }
-    }
-    disableSubmit = disableFlag
-  }
-
-
 </script>
 
 <h1>Personal Survey</h1>
-<form>
+<form on:submit|preventDefault={handleSubmit}>
   <!-- First Name Input Field -->
   <div>
     <label for="firstName">First Name</label>
-    <input type="text" name='firstName' bind:value={firstName} required>
+    <input type="text" name='firstName' bind:value={firstName} autocomplete='off'/>
   </div>
 
   <!-- Last Name Input Field -->
   <div>
     <label for="lastName">Last Name</label>
-    <input type="text" name='lastName' bind:value={lastName} required>
+    <input type="text" name='lastName' bind:value={lastName} autocomplete='off'/>
   </div>  
 
   <!-- Date of Birth -->
@@ -112,18 +95,9 @@
     <label for="basketball">Favorite Basketball Team</label>
     <select bind:value = {selectbb}>
         {#each basketballTeams as bbTeam}
-        <option value={bbTeam.team}>{bbTeam.team}</option>
+        <option value={bbTeam}>{bbTeam}</option>
         {/each}
     </select>
-  </div>
-
-  <!-- Income -->
-  <div>
-    <label>
-        Income
-        <input type=range bind:value={income} min=0 max=500000>
-        {formatMoney.format(income)}
-    </label>
   </div>
 
   <!-- on a scale of 1-10, how likely are you recommending codesmith to other people? -->
@@ -143,13 +117,26 @@
   <!-- svelte-ignore a11y-label-has-associated-control -->
   <label>Please check your favorite fruits! (up to 3)</label>
   {#each checkboxOptions as option}
-    <label><input type="checkbox" value={option.fruit} bind:group={fruits}>{option.fruit} </label>
+    <label><input type="checkbox" value={option} bind:group={fruits}>{option} </label>
   {/each}
 </div>
 
   <!-- Submit Button -->
   <div>
-    <button type='submit' disabled={disableSubmit || isSubmitting} on:click|preventDefault={handleSubmit}>Submit Survey</button>
+    <button type='submit'>Submit Survey</button>
   </div>
 </form>
-<h4>{JSON.stringify($errors)}</h4>
+<p>{JSON.stringify($errors, undefined, 2)}</p>
+{#if submitted}
+<p>{JSON.stringify({
+  firstName,
+  lastName,
+  dob,
+  sex,
+  selectbb,
+  recommendation,
+  fruits
+})}</p>
+{:else}
+<p>Not submitted</p>
+{/if}
